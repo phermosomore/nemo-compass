@@ -45,7 +45,7 @@ Both time bounds are required, inclusive, and timezone-aware.
 
 Under `trace.intake.query`, use `experiment_id` to select an experiment’s traces.
 You can also filter by `agent_name`, `evaluation_name`, `test_case_name`, `session_id`,
-or `status` (`success`, `error`, `cancelled`, or `unknown`). If you set both
+`trace_ids` (a list of Intake trace IDs; not with `experiment_id`), or `status` (`success`, `error`, `cancelled`, or `unknown`). If you set both
 `experiment_id` and `evaluation_name`, the evaluation must belong to that experiment.
 
 For a single run:

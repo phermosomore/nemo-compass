@@ -178,6 +178,9 @@ class IntakeTraceQuery(_StrictModel):
     evaluation_name: str | None = None
     test_case_name: str | None = None
     session_id: str | None = None
+    trace_ids: list[str] | None = Field(
+        default=None, min_length=1, description="Restrict traces to these Intake trace IDs."
+    )
     status: IntakeStatus | None = None
     max_traces: int | None = Field(default=None, ge=1)
     sort: Literal["started_at", "-started_at"] = "started_at"
@@ -193,6 +196,8 @@ class IntakeTraceQuery(_StrictModel):
     def bounds_are_ordered(self) -> IntakeTraceQuery:
         if self.started_at_gte > self.started_at_lte:
             raise ValueError("started_at_gte must not follow started_at_lte")
+        if self.trace_ids is not None and self.experiment_id is not None:
+            raise ValueError("trace_ids cannot be combined with experiment_id")
         return self
 
     def params(self) -> dict[str, str]:
@@ -277,17 +282,29 @@ class _IntakeClient:
     def __exit__(self, *_args: object) -> None:
         self._client.close()
 
-    def trace_pages(self, query: IntakeTraceQuery) -> Iterator[_TracePage]:
-        yield from self._pages(
-            endpoint="traces",
-            model=_TracePage,
-            params={**query.params(), "sort": query.sort, "mode": "detailed"},
-        )
+    def trace_pages(
+        self, query: IntakeTraceQuery, trace_id: str | None = None
+    ) -> Iterator[_TracePage]:
+        params = {**query.params(), "sort": query.sort, "mode": "detailed"}
+        if trace_id is not None:
+            params["filter[id]"] = trace_id
+        yield from self._pages(endpoint="traces", model=_TracePage, params=params)
 
     def traces(self, query: IntakeTraceQuery) -> Iterator[_IntakeTrace]:
-        def records(selection: IntakeTraceQuery) -> Iterator[_IntakeTrace]:
-            for page in self.trace_pages(selection):
+        def records(
+            selection: IntakeTraceQuery, trace_id: str | None = None
+        ) -> Iterator[_IntakeTrace]:
+            for page in self.trace_pages(selection, trace_id):
                 yield from page.data
+
+        if query.trace_ids is not None:
+            # Intake filters one trace ID per request.
+            yield from heapq.merge(
+                *(records(query, trace_id) for trace_id in dict.fromkeys(query.trace_ids)),
+                key=lambda trace: _aware_utc(trace.started_at),
+                reverse=query.sort == "-started_at",
+            )
+            return
 
         if query.experiment_id is None:
             yield from records(query)

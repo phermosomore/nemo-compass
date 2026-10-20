@@ -783,3 +783,36 @@ def test_experiment_id_cli_overrides_yaml(tmp_path):
     assert isinstance(loader, IntakeTraceLoader)
     assert loader.config.query.experiment_id == "from-cli"
     assert "filter[experiment_id]" not in loader.config.query.params()
+
+
+def test_trace_ids_select_each_trace_once_with_other_filters():
+    requested = []
+
+    def handler(request):
+        params = request.url.params
+        if request.url.path.endswith("/traces"):
+            assert params["filter[agent_name]"] == "agent-a"
+            requested.append(params["filter[id]"])
+            return httpx.Response(
+                200,
+                json={
+                    "data": [_trace_record(params["filter[id]"])],
+                    "pagination": _pagination(page=1, total_pages=1, total_results=1, size=1),
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "data": [_span_record("root", trace_id=params["filter[trace_id]"])],
+                "pagination": _pagination(page=1, total_pages=1, total_results=1, size=1),
+            },
+        )
+
+    query = _query().model_copy(update={"trace_ids": ["a", "b", "a"], "agent_name": "agent-a"})
+    loader = IntakeTraceLoader(config=_config(query=query), transport=_mock_transport(handler))
+
+    assert [trace.id for trace in loader.load()] == ["a", "b"]
+    assert requested == ["a", "b"]
+    assert loader.describe()["query"]["trace_ids"] == ["a", "b", "a"]
+    with pytest.raises(ValueError, match="trace_ids cannot be combined with experiment_id"):
+        IntakeTraceQuery.model_validate({**query.model_dump(), "experiment_id": "experiment-1"})
