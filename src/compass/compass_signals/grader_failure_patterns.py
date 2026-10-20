@@ -93,7 +93,8 @@ def _build_agent(
             """Find recurring Problems linked to recorded evaluation signals.
 
             Group the same failure across traces, not merely matching scores.
-            Fetch every supporting trace. Describe the observed failure behavior and the
+            Fetch each trace you cite, several per call; you need not fetch every trace.
+            Describe the observed failure behavior and the
             relevant evaluator names and values in each Problem's description. Distinguish
             observed associations from proven causes. Call return_result when done.
             """

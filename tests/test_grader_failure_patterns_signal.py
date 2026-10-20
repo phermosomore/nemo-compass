@@ -10,6 +10,7 @@ from nooa.unifiedllm import FakeLLMClient, LLMResponse, ToolCall
 
 from compass.cli.main import _build_llm, _run_compass_signals, get_config
 from compass.compass_signals.compass_signals import Problem
+from compass.compass_signals.grader_failure_patterns import GraderFailurePatternsConfig
 from compass.config import RunConfig
 from compass.traces import Span, SpanKind, Trace, TraceAggregate, TraceSnapshot
 
@@ -114,3 +115,8 @@ def test_configured_signal_fetches_traces_before_reporting(select_signals):
     assert results[0].problems == (problem,)
     assert llm.call_count == 3
     assert "search request" in str(llm.last_messages)
+    assert "several per call" in str(llm.last_messages)
+
+
+def test_default_fetch_budget_is_bounded():
+    assert GraderFailurePatternsConfig().max_tool_rounds == 15
