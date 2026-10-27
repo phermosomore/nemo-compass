@@ -458,11 +458,13 @@ def test_intake_loader_rejects_an_empty_selection():
             },
         )
 
-    with pytest.raises(IntakeLoadError, match="returned no traces"):
+    with pytest.raises(IntakeLoadError, match="returned no traces") as error:
         IntakeTraceLoader(
             config=_config(),
             transport=_mock_transport(handler),
         ).load()
+    assert f"workspace {WORKSPACE!r}" in str(error.value)
+    assert "started_at_gte" in str(error.value)
 
 
 def test_intake_loader_reports_http_failure():

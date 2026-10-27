@@ -423,7 +423,11 @@ class IntakeTraceLoader:
             except (ValueError, TypeError) as error:
                 raise IntakeLoadError(f"Failed to load Intake traces: {error}") from error
         if not snapshot.trace_count:
-            raise IntakeLoadError("bounded Intake scan returned no traces")
+            raise IntakeLoadError(
+                f"bounded Intake scan returned no traces from {self.config.base_url}, "
+                f"workspace {self.config.workspace!r}, query {self.config.query.describe()}; "
+                "check the agent name, the time window and that base_url is NeMo Intake"
+            )
         self._snapshot = snapshot
         return snapshot
 
