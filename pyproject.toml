@@ -33,7 +33,8 @@ dependencies = [
     "pydantic-settings[yaml]>=2.12,<3",
     "python-dotenv>=1.0,<2",
     "PyYAML>=6,<7",
-    "litellm>=1.55,<2",
+    # litellm 1.106 imports the optional mcp package on every tool call (BerriAI/litellm#46045).
+    "litellm>=1.55,<1.106",
     "tokenizers>=0.21,<1",
     "nooa[tracing]>=0.0.10,<0.1",
     "rich>=14,<16",

@@ -1085,7 +1085,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.18,<5" },
     { name = "langfuse", marker = "extra == 'langfuse'", specifier = ">=4.17,<5" },
     { name = "langsmith", marker = "extra == 'langsmith'", specifier = ">=0.12,<0.13" },
-    { name = "litellm", specifier = ">=1.55,<2" },
+    { name = "litellm", specifier = ">=1.55,<1.106" },
     { name = "mlflow-skinny", marker = "extra == 'mlflow'", specifier = ">=3.6,<4" },
     { name = "nooa", extras = ["tracing"], specifier = ">=0.0.10,<0.1" },
     { name = "numpy", specifier = ">=1.26,<3" },
