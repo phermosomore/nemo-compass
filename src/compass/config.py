@@ -335,7 +335,7 @@ class RunConfig(BaseSettings):
     api_base: str | None = None
     existing_insights: Path | None = Field(
         default=None,
-        description="Existing insights.json to reconcile with newly generated Insights",
+        description="Previous JSON or YAML insight collection to reconcile with this run",
     )
 
     @field_validator("ethos_path", mode="before")
